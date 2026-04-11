@@ -60,7 +60,7 @@
       <img src="solo-ventures-logo-proposta.png" alt="Solo Ventures" class="h-12 object-contain" />
       <div class="flex items-center gap-3">
         <span class="text-dark-400 text-xs tracking-widest uppercase hidden sm:inline">Proposta Comercial</span>
-        <span class="text-xs text-fire-500 font-semibold bg-fire-500/10 px-3 py-1 rounded-full">SV-012</span>
+        <span class="text-xs text-fire-500 font-semibold bg-fire-500/10 px-3 py-1 rounded-full" data-param="codigo">SV-012</span>
       </div>
     </div>
   </nav>
@@ -106,18 +106,18 @@
       <div class="mt-16 grid sm:grid-cols-3 gap-4">
         <div class="glass rounded-2xl p-6">
           <p class="text-dark-400 text-xs uppercase tracking-widest mb-2">Cliente</p>
-          <p class="text-white font-semibold text-lg">Dr. George Sales</p>
-          <p class="text-dark-400 text-sm">Jornada do R1 &mdash; Mentoria Residência</p>
+          <p class="text-white font-semibold text-lg" data-param="cliente">Dr. George Sales</p>
+          <p class="text-dark-400 text-sm" data-param="empresa">Jornada do R1 — Mentoria Residência</p>
         </div>
         <div class="glass rounded-2xl p-6">
           <p class="text-dark-400 text-xs uppercase tracking-widest mb-2">Prazo</p>
-          <p class="text-white font-semibold text-lg">15 dias úteis</p>
+          <p class="text-white font-semibold text-lg" data-param="prazo">15 dias úteis</p>
           <p class="text-dark-400 text-sm">Implementação completa</p>
         </div>
         <div class="glass rounded-2xl p-6">
           <p class="text-dark-400 text-xs uppercase tracking-widest mb-2">Código</p>
-          <p class="text-white font-semibold text-lg">SV-012</p>
-          <p class="text-dark-400 text-sm">Sales Engine &mdash; Expert Economy</p>
+          <p class="text-white font-semibold text-lg" data-param="codigo">SV-012</p>
+          <p class="text-dark-400 text-sm" data-param="produto">Sales Engine — Expert Economy</p>
         </div>
       </div>
     </div>
@@ -251,7 +251,7 @@
     <div class="max-w-4xl mx-auto relative">
       <div class="text-center mb-16">
         <span class="text-fire-500 text-xs font-bold tracking-[6px] uppercase">Cronograma</span>
-        <h2 class="text-3xl sm:text-4xl font-bold mt-4">15 dias úteis para go-live</h2>
+        <h2 class="text-3xl sm:text-4xl font-bold mt-4"><span data-param="prazo">15 dias úteis</span> para go-live</h2>
         <p class="text-dark-400 mt-3">Da aprovação ao deploy em produção.</p>
       </div>
 
@@ -371,7 +371,7 @@
             <div>
               <p class="text-white/70 text-sm font-medium uppercase tracking-wider mb-1">Investimento de Setup</p>
               <div class="flex items-baseline gap-4">
-                <span class="text-white text-4xl sm:text-5xl font-black">R$ 700</span>
+                <span class="text-white text-4xl sm:text-5xl font-black" data-param="setup">R$ 700</span>
                 <span class="text-white/60 text-lg price-strike font-medium">R$ 6.500</span>
               </div>
               <p class="text-white/70 text-sm mt-2">Pagamento único de implementação</p>
@@ -379,7 +379,7 @@
             <div class="md:text-right">
               <p class="text-white/70 text-sm font-medium uppercase tracking-wider mb-1">Recorrência Mensal</p>
               <div class="flex items-baseline gap-2 md:justify-end">
-                <span class="text-white text-3xl sm:text-4xl font-black">R$ 200</span>
+                <span class="text-white text-3xl sm:text-4xl font-black" data-param="mensalidade">R$ 200</span>
                 <span class="text-white/60 text-base">/mês</span>
               </div>
               <p class="text-white/70 text-sm mt-2">Hospedagem, IA e Suporte</p>
@@ -422,6 +422,7 @@
       </p>
 
       <a
+        id="sv-whatsapp-btn"
         href="https://wa.me/558596487923?text=Quero%20aprovar%20o%20projeto%20Sales%20Engine%20%E2%80%94%20Jornada%20do%20R1.%20Vamos%20gerar%20o%20PIX%20de%20sinal!"
         target="_blank"
         rel="noopener noreferrer"
@@ -439,7 +440,7 @@
         Baixar em PDF
       </button>
 
-      <p class="text-dark-500 text-xs mt-6">Ao aprovar, você concorda com os termos da proposta SV-012.</p>
+      <p class="text-dark-500 text-xs mt-6">Ao aprovar, você concorda com os termos da proposta <span data-param="codigo">SV-012</span>.</p>
     </div>
   </section>
 
@@ -478,5 +479,51 @@
     </div>
   </footer>
 
+  <script>
+    (function () {
+      const p = new URLSearchParams(location.search);
+      if (!p.toString()) return;
+
+      // Fill all [data-param] elements
+      document.querySelectorAll('[data-param]').forEach(function (el) {
+        var key = el.dataset.param;
+        if (p.has(key)) el.textContent = p.get(key);
+      });
+
+      // Update WhatsApp button href
+      var wa = document.getElementById('sv-whatsapp-btn');
+      if (wa) {
+        var phone = p.get('whatsapp') || '558596487923';
+        var cliente = p.get('cliente') || 'Proposta';
+        var codigo = p.get('codigo') || 'SV-012';
+        var msg = encodeURIComponent(
+          'Quero aprovar o projeto ' + codigo + ' \u2014 ' + cliente + '. Vamos gerar o PIX de sinal!'
+        );
+        wa.href = 'https://wa.me/' + phone + '?text=' + msg;
+      }
+
+      // Replace inline text mentions of the default client name in all text nodes
+      var defaultCliente = 'Dr. George Sales';
+      var novoCliente = p.get('cliente');
+      if (novoCliente && novoCliente !== defaultCliente) {
+        var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+        var nodes = [];
+        while (walker.nextNode()) nodes.push(walker.currentNode);
+        var re = new RegExp(defaultCliente.replace('.', '\\.'), 'g');
+        nodes.forEach(function (n) {
+          if (n.textContent.indexOf(defaultCliente) !== -1) {
+            n.textContent = n.textContent.replace(re, novoCliente);
+          }
+        });
+      }
+
+      // Update page title
+      if (p.has('codigo') || p.has('cliente')) {
+        var cod = p.get('codigo') || 'SV-012';
+        var cli = p.get('cliente') || 'Dr. George Sales';
+        document.title = 'Proposta ' + cod + ' \u2014 ' + cli;
+      }
+    })();
+  </script>
 </body>
 </html>
