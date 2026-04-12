@@ -380,30 +380,6 @@
         </div>
       </div>
 
-      <!-- Payment info -->
-      <div class="mt-6 grid sm:grid-cols-3 gap-4">
-        <div class="glass rounded-xl p-5 flex items-start gap-3">
-          <span class="text-fire-500 text-lg">💳</span>
-          <div>
-            <p class="text-white text-sm font-semibold">Sinal de 50%</p>
-            <p class="text-dark-400 text-xs" id="display-sinal">50% via PIX na aprovação. Restante na entrega.</p>
-          </div>
-        </div>
-        <div class="glass rounded-xl p-5 flex items-start gap-3">
-          <span class="text-fire-500 text-lg">📅</span>
-          <div>
-            <p class="text-white text-sm font-semibold">Assinatura no go-live</p>
-            <p class="text-dark-400 text-xs">Cobrança mensal inicia somente após deploy em produção.</p>
-          </div>
-        </div>
-        <div class="glass rounded-xl p-5 flex items-start gap-3">
-          <span class="text-fire-500 text-lg">🔧</span>
-          <div>
-            <p class="text-white text-sm font-semibold">Manutenção sob demanda</p>
-            <p class="text-dark-400 text-xs">Ajustes e iterações na LP cobrados por hora após a entrega.</p>
-          </div>
-        </div>
-      </div>
     </div>
   </section>
 
@@ -418,16 +394,14 @@
         Clique abaixo para aprovar a proposta. Nossa equipe entra em contato em até 24h para iniciar o Discovery.
       </p>
 
-      <a
-        id="sv-whatsapp-btn"
-        href="https://wa.me/558596487923"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="inline-flex items-center gap-3 gradient-fire text-white font-bold text-lg px-10 py-5 rounded-2xl hover:opacity-90 transition shadow-lg shadow-fire-600/20"
+      <button
+        id="sv-cta-btn"
+        onclick="handleCTA()"
+        class="inline-flex items-center gap-3 gradient-fire text-white font-bold text-lg px-10 py-5 rounded-2xl hover:opacity-90 transition shadow-lg shadow-fire-600/20 cursor-pointer"
       >
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.5.5 0 00.612.616l4.584-1.466A11.955 11.955 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-2.347 0-4.518-.809-6.243-2.16l-.436-.348-2.726.871.892-2.657-.379-.46A9.953 9.953 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
-        Aprovar Proposta &amp; Gerar PIX de Sinal
-      </a>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+        Aceitar e Agendar Reunião de Onboarding
+      </button>
 
       <button
         onclick="window.print()"
@@ -560,21 +534,20 @@
         });
       }
 
-      // WhatsApp CTA
-      var wa = document.getElementById('sv-whatsapp-btn');
-      if (wa) {
+      // Store WhatsApp URL for handleCTA
+      window._svWaUrl = (function() {
         var phone = p.get('whatsapp') || '558596487923';
         var cliente = p.get('cliente') || 'seu negócio';
         var codigo = p.get('codigo') || 'SV-001';
         var prazo = p.get('prazo') || '15 dias úteis';
         var msg = encodeURIComponent(
-          'Olá! Quero aprovar a proposta ' + codigo + ' — Sales Engine para ' + cliente + '.\n\n' +
+          'Olá! Aceito a proposta ' + codigo + ' — Sales Engine para ' + cliente + '.\n\n' +
           '→ Setup: ' + fmt(setup) + '\n' +
           '→ Prazo: ' + prazo + '\n\n' +
-          'Vamos gerar o PIX de sinal e iniciar!'
+          'Já agendei a reunião de onboarding!'
         );
-        wa.href = 'https://wa.me/' + phone + '?text=' + msg;
-      }
+        return 'https://wa.me/' + phone + '?text=' + msg;
+      })();
 
       // Page title
       var cliente = p.get('cliente');
@@ -583,6 +556,14 @@
         document.title = 'Proposta ' + (codigo || 'SV-001') + ' — ' + (cliente || 'Solo Ventures');
       }
     })();
+
+    // CTA: open WhatsApp + Calendly simultaneously
+    function handleCTA() {
+      var waUrl = window._svWaUrl || 'https://wa.me/558596487923';
+      var calendlyUrl = 'https://calendly.com/mateus-soloenergia/30min?month=2026-04';
+      window.open(waUrl, '_blank');
+      window.open(calendlyUrl, '_blank');
+    }
   </script>
 
 </body>
