@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manager — Solo Ventures</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            fire: { 400: '#FB923C', 500: '#F97316', 600: '#EA580C' },
+            dark: { 400: '#9CA3AF', 500: '#6B7280', 600: '#4B5563', 700: '#374151', 800: '#1F2937', 900: '#111827', 950: '#0A0A0A' },
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .glass { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); }
+    .input-base { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 0.5rem; padding: 0.5rem 0.75rem; width: 100%; font-size: 0.875rem; outline: none; transition: border-color 0.15s; }
+    .input-base:focus { border-color: #F97316; }
+    .input-base::placeholder { color: #6B7280; }
+    .btn-fire { background: linear-gradient(135deg,#EA580C,#F97316); color: white; font-weight: 600; border-radius: 0.625rem; padding: 0.5rem 1.25rem; font-size: 0.875rem; cursor: pointer; transition: opacity 0.15s; border: none; }
+    .btn-fire:hover { opacity: 0.88; }
+    .btn-ghost { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #D1D5DB; font-weight: 500; border-radius: 0.625rem; padding: 0.5rem 1rem; font-size: 0.8rem; cursor: pointer; transition: background 0.15s; }
+    .btn-ghost:hover { background: rgba(255,255,255,0.1); }
+    .badge-pending { background: rgba(251,191,36,0.12); color: #FCD34D; font-size: 0.7rem; font-weight: 700; padding: 0.2rem 0.65rem; border-radius: 9999px; letter-spacing: 0.04em; }
+    .badge-accepted { background: rgba(34,197,94,0.12); color: #4ADE80; font-size: 0.7rem; font-weight: 700; padding: 0.2rem 0.65rem; border-radius: 9999px; letter-spacing: 0.04em; }
+    .toast { position: fixed; bottom: 1.5rem; right: 1.5rem; background: #1F2937; border: 1px solid rgba(255,255,255,0.1); color: white; padding: 0.75rem 1.25rem; border-radius: 0.75rem; font-size: 0.85rem; font-weight: 500; z-index: 999; transform: translateY(6px); opacity: 0; transition: all 0.25s; pointer-events: none; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body class="bg-dark-950 text-white font-sans antialiased min-h-screen">
+
+  <!-- HEADER -->
+  <header class="border-b border-white/5 px-6 h-14 flex items-center justify-between sticky top-0 bg-dark-950/90 backdrop-blur z-40">
+    <div class="flex items-center gap-3">
+      <img src="solo-ventures-logo-proposta.png" alt="Solo Ventures" class="h-8 object-contain" />
+      <span class="text-dark-500 text-xs">|</span>
+      <span class="text-dark-400 text-sm font-medium">Proposal Manager</span>
+    </div>
+    <div class="flex items-center gap-2" id="header-stats">
+      <!-- filled by JS -->
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-8 space-y-8">
+
+    <!-- NOVA PROPOSTA -->
+    <section class="glass rounded-2xl overflow-hidden">
+      <div class="px-6 py-4 border-b border-white/5 flex items-center justify-between">
+        <h2 class="text-white font-semibold text-base">Nova Proposta</h2>
+        <span id="preview-codigo" class="text-fire-500 text-xs font-bold bg-fire-500/10 px-3 py-1 rounded-full">SV-001</span>
+      </div>
+
+      <div class="p-6">
+        <form id="proposal-form" class="space-y-5" onsubmit="return false">
+
+          <!-- Row 1: client info -->
+          <div class="grid sm:grid-cols-3 gap-4">
+            <div>
+              <label class="text-dark-400 text-xs font-medium block mb-1.5">Cliente *</label>
+              <input id="f-cliente" class="input-base" placeholder="Nome ou empresa" oninput="updatePreview()" />
+            </div>
+            <div>
+              <label class="text-dark-400 text-xs font-medium block mb-1.5">WhatsApp *</label>
+              <input id="f-whatsapp" class="input-base" placeholder="5511999999999" oninput="updatePreview()" />
+            </div>
+            <div>
+              <label class="text-dark-400 text-xs font-medium block mb-1.5">E-mail</label>
+              <input id="f-email" class="input-base" type="email" placeholder="cliente@email.com" />
+            </div>
+          </div>
+
+          <!-- Row 2: proposal details -->
+          <div class="grid sm:grid-cols-3 gap-4">
+            <div>
+              <label class="text-dark-400 text-xs font-medium block mb-1.5">Prazo de entrega</label>
+              <input id="f-prazo" class="input-base" placeholder="15 dias úteis" value="15 dias úteis" oninput="updatePreview()" />
+            </div>
+            <div>
+              <label class="text-dark-400 text-xs font-medium block mb-1.5">Válido até</label>
+              <input id="f-validade" class="input-base" placeholder="19/04/2026" oninput="updatePreview()" />
+            </div>
+            <div>
+              <label class="text-dark-400 text-xs font-medium block mb-1.5">Mensalidade (R$)</label>
+              <input id="f-mensalidade" class="input-base" type="number" placeholder="200" value="200" oninput="updatePreview()" />
+            </div>
+          </div>
+
+          <!-- Row 3: pricing -->
+          <div class="grid sm:grid-cols-3 gap-4">
+            <div>
+              <label class="text-dark-400 text-xs font-medium block mb-1.5">Setup — Valor final (R$)</label>
+              <input id="f-setup" class="input-base" type="number" placeholder="700" value="700" oninput="updatePreview()" />
+            </div>
+            <div>
+              <label class="text-dark-400 text-xs font-medium block mb-1.5">Valor real / tabela (R$)</label>
+              <input id="f-valor-real" class="input-base" type="number" placeholder="6500" value="6500" oninput="updatePreview()" />
+            </div>
+            <div class="flex flex-col justify-end">
+              <div class="glass rounded-xl px-4 py-3 text-center">
+                <p class="text-dark-500 text-xs mb-0.5">Desconto calculado</p>
+                <p class="text-fire-500 font-bold text-base" id="preview-desconto">—</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Link preview -->
+          <div>
+            <label class="text-dark-400 text-xs font-medium block mb-1.5">Link gerado</label>
+            <div class="flex gap-2">
+              <input id="preview-link" class="input-base flex-1 text-dark-400 text-xs" readonly placeholder="Preencha os campos acima..." />
+              <button type="button" onclick="copyLink()" class="btn-ghost shrink-0 flex items-center gap-1.5">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                Copiar
+              </button>
+              <button type="button" onclick="openPreview()" class="btn-ghost shrink-0 flex items-center gap-1.5">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                Ver
+              </button>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex flex-wrap items-center gap-3 pt-1">
+            <button type="button" onclick="saveProposal()" class="btn-fire flex items-center gap-2">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              Salvar Proposta
+            </button>
+            <button type="button" onclick="sendWhatsApp()" class="btn-ghost flex items-center gap-2">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.5.5 0 00.612.616l4.584-1.466A11.955 11.955 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-2.347 0-4.518-.809-6.243-2.16l-.436-.348-2.726.871.892-2.657-.379-.46A9.953 9.953 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+              Enviar WhatsApp
+            </button>
+            <button type="button" onclick="sendEmail()" class="btn-ghost flex items-center gap-2">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              Enviar E-mail
+            </button>
+            <button type="button" onclick="resetForm()" class="btn-ghost ml-auto text-dark-500">
+              Limpar
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- PROPOSALS TABLE -->
+    <section>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-white font-semibold text-base">Propostas</h2>
+        <div class="flex items-center gap-3 text-xs text-dark-400" id="table-stats"></div>
+      </div>
+
+      <div id="proposals-container">
+        <!-- filled by JS -->
+      </div>
+    </section>
+
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    var BASE_URL = 'https://mateus-esm.github.io/solo-ventures-proposal/';
+    var STORAGE_KEY = 'sv_proposals';
+
+    // ── Storage ──────────────────────────────────────────────
+    function loadProposals() {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    }
+    function storeProposals(list) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    }
+
+    // ── ID generation ────────────────────────────────────────
+    function nextNum() {
+      var list = loadProposals();
+      if (!list.length) return 1;
+      return Math.max.apply(null, list.map(function(p){ return p.num; })) + 1;
+    }
+    function fmtId(n) {
+      return 'SV-' + String(n).padStart(3, '0');
+    }
+
+    // ── Link builder ─────────────────────────────────────────
+    function buildLink(p) {
+      var params = new URLSearchParams();
+      params.set('cliente', p.cliente);
+      params.set('codigo', p.id);
+      if (p.prazo)      params.set('prazo', p.prazo);
+      if (p.validade)   params.set('validade', p.validade);
+      if (p.setup)      params.set('setup', p.setup);
+      if (p.valorReal)  params.set('valor_real', p.valorReal);
+      if (p.mensalidade) params.set('mensalidade', p.mensalidade);
+      if (p.whatsapp)   params.set('whatsapp', p.whatsapp.replace(/\D/g,''));
+      return BASE_URL + '?' + params.toString();
+    }
+
+    function waMessage(p) {
+      var link = buildLink(p);
+      return encodeURIComponent(
+        'Olá ' + p.cliente + '! 👋\n\n' +
+        'Segue a sua proposta personalizada do Sales Engine:\n\n' +
+        '🔗 ' + link + '\n\n' +
+        'Qualquer dúvida, é só falar!'
+      );
+    }
+
+    function fmtMoney(n) {
+      if (!n) return '—';
+      return 'R$ ' + Number(n).toLocaleString('pt-BR');
+    }
+
+    // ── Form helpers ─────────────────────────────────────────
+    function getFormData() {
+      return {
+        cliente:     document.getElementById('f-cliente').value.trim(),
+        whatsapp:    document.getElementById('f-whatsapp').value.trim(),
+        email:       document.getElementById('f-email').value.trim(),
+        prazo:       document.getElementById('f-prazo').value.trim(),
+        validade:    document.getElementById('f-validade').value.trim(),
+        setup:       parseFloat(document.getElementById('f-setup').value) || 700,
+        valorReal:   parseFloat(document.getElementById('f-valor-real').value) || 6500,
+        mensalidade: parseFloat(document.getElementById('f-mensalidade').value) || 200,
+      };
+    }
+
+    function updatePreview() {
+      var d = getFormData();
+      var num = nextNum();
+      var id = fmtId(num);
+      document.getElementById('preview-codigo').textContent = id;
+
+      var pct = d.valorReal > d.setup
+        ? Math.round((d.valorReal - d.setup) / d.valorReal * 100) + '% OFF'
+        : '—';
+      document.getElementById('preview-desconto').textContent = pct;
+
+      if (d.cliente) {
+        var link = buildLink(Object.assign({ id: id }, d));
+        document.getElementById('preview-link').value = link;
+      } else {
+        document.getElementById('preview-link').value = '';
+      }
+    }
+
+    function copyLink() {
+      var link = document.getElementById('preview-link').value;
+      if (!link) { showToast('Preencha o nome do cliente primeiro.'); return; }
+      navigator.clipboard.writeText(link).then(function() { showToast('Link copiado!'); });
+    }
+
+    function openPreview() {
+      var link = document.getElementById('preview-link').value;
+      if (!link) { showToast('Preencha o nome do cliente primeiro.'); return; }
+      window.open(link, '_blank');
+    }
+
+    function sendWhatsApp() {
+      var d = getFormData();
+      if (!d.cliente) { showToast('Preencha o nome do cliente.'); return; }
+      if (!d.whatsapp) { showToast('Preencha o WhatsApp do cliente.'); return; }
+      var num = nextNum();
+      var p = Object.assign({ id: fmtId(num) }, d);
+      var phone = d.whatsapp.replace(/\D/g,'');
+      window.open('https://wa.me/' + phone + '?text=' + waMessage(p), '_blank');
+    }
+
+    function sendEmail() {
+      var d = getFormData();
+      if (!d.cliente) { showToast('Preencha o nome do cliente.'); return; }
+      if (!d.email) { showToast('Preencha o e-mail do cliente.'); return; }
+      var num = nextNum();
+      var p = Object.assign({ id: fmtId(num) }, d);
+      var link = buildLink(p);
+      var subject = encodeURIComponent('Proposta ' + p.id + ' — Sales Engine Solo Ventures');
+      var body = encodeURIComponent(
+        'Olá ' + d.cliente + ',\n\n' +
+        'Segue a sua proposta personalizada do Sales Engine:\n\n' +
+        link + '\n\n' +
+        'Qualquer dúvida, estou à disposição.\n\nMateus — Solo Ventures'
+      );
+      window.location.href = 'mailto:' + d.email + '?subject=' + subject + '&body=' + body;
+    }
+
+    function saveProposal() {
+      var d = getFormData();
+      if (!d.cliente) { showToast('Preencha o nome do cliente.'); return; }
+      if (!d.whatsapp) { showToast('Preencha o WhatsApp do cliente.'); return; }
+      var list = loadProposals();
+      var num = nextNum();
+      var proposal = Object.assign({
+        num: num,
+        id: fmtId(num),
+        status: 'pending',
+        createdAt: new Date().toLocaleDateString('pt-BR'),
+      }, d);
+      list.push(proposal);
+      storeProposals(list);
+      showToast('Proposta ' + proposal.id + ' salva!');
+      resetForm(num + 1);
+      renderTable();
+      renderStats();
+    }
+
+    function resetForm(nextNumber) {
+      document.getElementById('f-cliente').value = '';
+      document.getElementById('f-whatsapp').value = '';
+      document.getElementById('f-email').value = '';
+      document.getElementById('f-prazo').value = '15 dias úteis';
+      document.getElementById('f-validade').value = '';
+      document.getElementById('f-setup').value = '700';
+      document.getElementById('f-valor-real').value = '6500';
+      document.getElementById('f-mensalidade').value = '200';
+      document.getElementById('preview-link').value = '';
+      document.getElementById('preview-desconto').textContent = '—';
+      var n = nextNumber || nextNum();
+      document.getElementById('preview-codigo').textContent = fmtId(n);
+    }
+
+    // ── Table ────────────────────────────────────────────────
+    function renderTable() {
+      var list = loadProposals().slice().reverse();
+      var container = document.getElementById('proposals-container');
+
+      if (!list.length) {
+        container.innerHTML = '<div class="glass rounded-2xl p-12 text-center text-dark-500 text-sm">Nenhuma proposta criada ainda.</div>';
+        return;
+      }
+
+      var rows = list.map(function(p) {
+        var badge = p.status === 'accepted'
+          ? '<span class="badge-accepted">Aceita</span>'
+          : '<span class="badge-pending">Pendente</span>';
+
+        var toggleLabel = p.status === 'accepted' ? 'Marcar Pendente' : 'Marcar Aceita';
+        var toggleIcon = p.status === 'accepted'
+          ? '<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>'
+          : '<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>';
+
+        return '<tr class="border-b border-white/5 group">' +
+          '<td class="py-3 px-4 font-mono text-fire-500 text-xs font-semibold">' + p.id + '</td>' +
+          '<td class="py-3 px-4">' +
+            '<p class="text-white text-sm font-medium">' + escHtml(p.cliente) + '</p>' +
+            (p.email ? '<p class="text-dark-500 text-xs">' + escHtml(p.email) + '</p>' : '') +
+          '</td>' +
+          '<td class="py-3 px-4 text-dark-300 text-sm">' + escHtml(p.whatsapp || '—') + '</td>' +
+          '<td class="py-3 px-4 text-white text-sm font-semibold">' + fmtMoney(p.setup) + '</td>' +
+          '<td class="py-3 px-4">' + badge + '</td>' +
+          '<td class="py-3 px-4 text-dark-500 text-xs">' + (p.createdAt || '—') + '</td>' +
+          '<td class="py-3 px-4">' +
+            '<div class="flex items-center gap-1.5">' +
+              '<button onclick="copyProposalLink(\'' + p.id + '\')" class="btn-ghost py-1 px-2 text-xs flex items-center gap-1" title="Copiar link">' +
+                '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>' +
+              '</button>' +
+              '<button onclick="viewProposal(\'' + p.id + '\')" class="btn-ghost py-1 px-2 text-xs" title="Ver proposta">' +
+                '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>' +
+              '</button>' +
+              '<button onclick="sendProposalWa(\'' + p.id + '\')" class="btn-ghost py-1 px-2 text-xs" title="Enviar WhatsApp">' +
+                '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.5.5 0 00.612.616l4.584-1.466A11.955 11.955 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-2.347 0-4.518-.809-6.243-2.16l-.436-.348-2.726.871.892-2.657-.379-.46A9.953 9.953 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>' +
+              '</button>' +
+              '<button onclick="toggleStatus(\'' + p.id + '\')" class="btn-ghost py-1 px-2 text-xs flex items-center gap-1" title="' + toggleLabel + '">' +
+                toggleIcon +
+                '<span>' + (p.status === 'accepted' ? 'Desfazer' : 'Aceita') + '</span>' +
+              '</button>' +
+              '<button onclick="deleteProposal(\'' + p.id + '\')" class="btn-ghost py-1 px-2 text-xs text-red-400 hover:bg-red-400/10" title="Deletar">' +
+                '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>' +
+              '</button>' +
+            '</div>' +
+          '</td>' +
+        '</tr>';
+      }).join('');
+
+      container.innerHTML =
+        '<div class="glass rounded-2xl overflow-hidden">' +
+          '<div class="overflow-x-auto">' +
+            '<table class="w-full">' +
+              '<thead>' +
+                '<tr class="border-b border-white/10">' +
+                  '<th class="text-left text-dark-400 text-xs uppercase tracking-wider py-3 px-4 font-semibold">Código</th>' +
+                  '<th class="text-left text-dark-400 text-xs uppercase tracking-wider py-3 px-4 font-semibold">Cliente</th>' +
+                  '<th class="text-left text-dark-400 text-xs uppercase tracking-wider py-3 px-4 font-semibold">WhatsApp</th>' +
+                  '<th class="text-left text-dark-400 text-xs uppercase tracking-wider py-3 px-4 font-semibold">Setup</th>' +
+                  '<th class="text-left text-dark-400 text-xs uppercase tracking-wider py-3 px-4 font-semibold">Status</th>' +
+                  '<th class="text-left text-dark-400 text-xs uppercase tracking-wider py-3 px-4 font-semibold">Criado</th>' +
+                  '<th class="text-left text-dark-400 text-xs uppercase tracking-wider py-3 px-4 font-semibold">Ações</th>' +
+                '</tr>' +
+              '</thead>' +
+              '<tbody>' + rows + '</tbody>' +
+            '</table>' +
+          '</div>' +
+        '</div>';
+    }
+
+    function renderStats() {
+      var list = loadProposals();
+      var total = list.length;
+      var accepted = list.filter(function(p){ return p.status === 'accepted'; }).length;
+      var pending = total - accepted;
+
+      document.getElementById('header-stats').innerHTML =
+        '<span class="text-dark-500 text-xs">' + total + ' total</span>' +
+        '<span class="badge-pending">' + pending + ' pendentes</span>' +
+        '<span class="badge-accepted">' + accepted + ' aceitas</span>';
+
+      document.getElementById('table-stats').innerHTML =
+        '<span>' + total + ' proposta' + (total !== 1 ? 's' : '') + '</span>' +
+        '<span class="text-dark-600">·</span>' +
+        '<span class="badge-accepted">' + accepted + ' aceita' + (accepted !== 1 ? 's' : '') + '</span>';
+    }
+
+    // ── Row actions ──────────────────────────────────────────
+    function findProposal(id) {
+      return loadProposals().find(function(p){ return p.id === id; });
+    }
+
+    function copyProposalLink(id) {
+      var p = findProposal(id);
+      if (!p) return;
+      navigator.clipboard.writeText(buildLink(p)).then(function(){ showToast('Link copiado!'); });
+    }
+
+    function viewProposal(id) {
+      var p = findProposal(id);
+      if (p) window.open(buildLink(p), '_blank');
+    }
+
+    function sendProposalWa(id) {
+      var p = findProposal(id);
+      if (!p) return;
+      var phone = (p.whatsapp || '').replace(/\D/g,'');
+      if (!phone) { showToast('WhatsApp não cadastrado.'); return; }
+      window.open('https://wa.me/' + phone + '?text=' + waMessage(p), '_blank');
+    }
+
+    function toggleStatus(id) {
+      var list = loadProposals();
+      list = list.map(function(p) {
+        if (p.id === id) p.status = p.status === 'accepted' ? 'pending' : 'accepted';
+        return p;
+      });
+      storeProposals(list);
+      renderTable();
+      renderStats();
+      var p = findProposal(id);
+      showToast(id + ' marcada como ' + (p && p.status === 'accepted' ? 'Aceita' : 'Pendente') + '.');
+    }
+
+    function deleteProposal(id) {
+      if (!confirm('Deletar a proposta ' + id + '?')) return;
+      var list = loadProposals().filter(function(p){ return p.id !== id; });
+      storeProposals(list);
+      renderTable();
+      renderStats();
+      showToast(id + ' deletada.');
+    }
+
+    // ── Toast ────────────────────────────────────────────────
+    var toastTimer;
+    function showToast(msg) {
+      var el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function(){ el.classList.remove('show'); }, 2500);
+    }
+
+    function escHtml(str) {
+      return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // ── Init ─────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', function() {
+      updatePreview();
+      renderTable();
+      renderStats();
+    });
+  </script>
+
+</body>
+</html>
