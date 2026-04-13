@@ -534,9 +534,9 @@
         });
       }
 
-      // Store WhatsApp URL for handleCTA
+      // Store WhatsApp URL for handleCTA — always opens Solo Ventures number
       window._svWaUrl = (function() {
-        var phone = p.get('whatsapp') || '558596487923';
+        var soloPhone = '5585996487923';
         var cliente = p.get('cliente') || 'seu negócio';
         var codigo = p.get('codigo') || 'SV-001';
         var prazo = p.get('prazo') || '15 dias úteis';
@@ -544,9 +544,9 @@
           'Olá! Aceito a proposta ' + codigo + ' — Sales Engine para ' + cliente + '.\n\n' +
           '→ Setup: ' + fmt(setup) + '\n' +
           '→ Prazo: ' + prazo + '\n\n' +
-          'Já agendei a reunião de onboarding!'
+          'Quero iniciar!'
         );
-        return 'https://wa.me/' + phone + '?text=' + msg;
+        return 'https://wa.me/' + soloPhone + '?text=' + msg;
       })();
 
       // Page title
@@ -557,9 +557,9 @@
       }
     })();
 
-    // CTA: open WhatsApp only
+    // CTA: open WhatsApp with Solo Ventures number
     function handleCTA() {
-      var waUrl = window._svWaUrl || 'https://wa.me/558596487923';
+      var waUrl = window._svWaUrl || 'https://wa.me/5585996487923';
       window.open(waUrl, '_blank');
     }
   </script>
